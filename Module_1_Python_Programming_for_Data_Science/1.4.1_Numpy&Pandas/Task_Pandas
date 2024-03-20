@@ -137,4 +137,81 @@ df["age_flag"] = df["age"].apply(lambda x: 1 if x<30 else 0)
 
 #########################################
 # Task 17: Define the Tips dataset from the Seaborn library.
-########
+#########################################
+
+df = sns.load_dataset("tips")
+df.head()
+df.shape
+
+#########################################
+# Task 18: Find the sum, min, max, and mean of 'total_bill' based on the categories of 'time' (Dinner, Lunch).
+#########################################
+
+df.groupby("time").agg({"total_bill": ["sum","min","mean","max"]})
+
+#########################################
+# Task 19: Find the sum, min, max, and mean of 'total_bill' based on the categories of 'day' and 'time'.
+#########################################
+
+df.groupby(["day","time"]).agg({"total_bill": ["sum","min","mean","max"]})
+
+#########################################
+# Task 20: Find the sum, min, max, and mean of 'total_bill' and 'tip' for lunch time and female customers, grouped by 'day'.
+#########################################
+
+df[(df["time"] == "Lunch") & (df["sex"] == "Female")].groupby("day").agg({"total_bill": ["sum","min","max","mean"],
+                                                                           "tip":  ["sum","min","max","mean"],
+                                                                            "Lunch" : lambda x:  x.nunqiue()})
+
+#########################################
+# Task 21: What is the average total bill of orders where the size is less than 3 and the total bill is over 10?
+#########################################
+
+df.loc[(df["size"] < 3) & (df["total_bill"] >10 ) , "total_bill"].mean() # 17.184965034965035
+
+#########################################
+# Task 22: Create a new variable named 'total_bill_tip_sum'. It should represent the total of 'total_bill' and 'tip' for each customer.
+#########################################
+
+df["total_bill_tip_sum"] = df["total_bill"] + df["tip"]
+df.head()
+
+#########################################
+# Task 23: Find the mean of 'total_bill' for male and female separately.
+# Create a new variable named 'total_bill_flag'. Assign 0 to those below the average and 1 to those equal to or above the average.
+# Note: For females, consider the average calculated for females, and for males, consider the average calculated for males.
+# Start by writing a function that takes gender and total_bill as parameters. (Include if-else conditions)
+#########################################
+
+# Calculating the average total bill for females and males
+
+f_avg = df[df["sex"]=="Female"]["total_bill"].mean() # 18.056896551724133
+m_avg = df[df["sex"]=="Male"]["total_bill"].mean() # 20.744076433121016
+
+def func(sex,total_bill):
+    if sex=="Female":
+        if total_bill < f_avg:
+            return 0
+        else:
+            return 1
+    else:
+        if total_bill < m_avg:
+            return 0
+        else:
+            return 1
+
+df["total_bill_flag"] = df[["sex","total_bill"]].apply(lambda x: func(x["sex"],x["total_bill"]),axis=1)
+
+#########################################
+# Task 24: Observe the number of individuals above and below the average based on the total_bill_flag variable for each gender.
+#########################################
+
+df.groupby(["sex", "total_bill_flag"]).agg({"total_bill_flag": "count"})
+
+
+#########################################
+# Task 25: Sort based on the total_bill_tip_sum variable from highest to lowest and assign the top 30 individuals to a new dataframe.
+#########################################
+
+new_df = df.sort_values("total_bill_tip_sum", ascending=False)[:30]
+new_df.shape
