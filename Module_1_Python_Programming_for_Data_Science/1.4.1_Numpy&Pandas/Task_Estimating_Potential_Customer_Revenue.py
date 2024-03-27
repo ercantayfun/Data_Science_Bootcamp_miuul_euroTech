@@ -166,3 +166,58 @@ for row in agg_df.values:
 # We can do this with list comprehension.
 # Perform the operation by selecting the observation values needed in the above loop:
 [row[0].upper() + "_" + row[1].upper() + "_" + row
+ # observation values:
+[row[0].upper() + "_" + row[1].upper() + "_" + row[2].upper() + "_" + row[5].upper() for row in agg_df.values]
+
+# Let's add it to the dataset:
+agg_df["customers_level_based"] = [row[0].upper() + "_" + row[1].upper() + "_" + row[2].upper() + "_" + row[5].upper() for row in agg_df.values]
+agg_df.head()
+
+# Let's remove unnecessary variables:
+agg_df = agg_df[["customers_level_based", "PRICE"]]
+agg_df.head()
+
+for i in agg_df["customers_level_based"].values:
+    print(i.split("_"))
+
+
+# We are one step closer to our goal.
+# There is a small problem here. There will be many segments for each segment.
+# for example, USA_ANDROID_MALE_0_18 segment may have many instances.
+# let's check:
+agg_df["customers_level_based"].value_counts()
+
+# Therefore, after grouping by segments, we should take the price averages and make the segments unique.
+agg_df = agg_df.groupby("customers_level_based").agg({"PRICE": "mean"})
+
+# customers_level_based is in the index. Let's convert it to a variable.
+agg_df = agg_df.reset_index()
+agg_df.head()
+
+# Let's check. we expect each persona to be unique:
+agg_df["customers_level_based"].value_counts()
+agg_df.head()
+
+
+#############################################
+# TASK 7: Divide new customers (USA_ANDROID_MALE_0_18) into segments.
+#############################################
+# Divide by PRICE for segments,
+# add segments to agg_df with the name "SEGMENT",
+# describe the segments,
+agg_df["SEGMENT"] = pd.qcut(agg_df["PRICE"], 4, labels=["D", "C", "B", "A"])
+agg_df.head(30)
+agg_df.groupby("SEGMENT").agg({"PRICE": "mean"})
+
+
+#############################################
+# TASK 8: Classify new incoming customers and estimate how much revenue they can potentially generate.
+#############################################
+# Which segment does a 33-year-old Turkish woman who uses ANDROID belong to and how much average revenue is expected?
+new_user = "TUR_ANDROID_FEMALE_31_40"
+agg_df[agg_df["customers_level_based"] == new_user]
+
+# Which segment does a 35-year-old French woman who uses IOS belong to and how much average revenue is expected?
+new_user = "FRA_IOS_FEMALE_31_40"
+agg_df[agg_df["customers_level_based"] == new_user]
+
